@@ -14,28 +14,26 @@ public class MinecraftCapesTester {
 
     private static JFrame frame = new JFrame("MinecraftCapes Tester");
     private JPanel panelMain;
+    private JScrollPane logAreaScroll;
     private JTextArea logArea;
     private JButton saveLogButton;
     private JButton retryConnectionButton;
     private JButton clearLogButton;
     private JButton closeButton;
 
+    /**
+     * Constructor
+     */
     public MinecraftCapesTester() {
-        testPingConnect();
-        testHttpConnect();
-
-        closeButton.addActionListener(event -> {
-            frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
-        });
-
-        clearLogButton.addActionListener(event -> {
-            logArea.setText(null);
-        });
-
-        retryConnectionButton.addActionListener(event -> {
-            testPingConnect();
-            testHttpConnect();
-        });
+        //Create Frame
+        frame.setContentPane(panelMain);
+        frame.setIconImage(new ImageIcon(getClass().getResource("/favicon.png")).getImage());
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.pack();
+        frame.setSize(800, 600);
+        frame.setLocationRelativeTo(null);
+        frame.setResizable(false);
+        frame.setVisible(true);
 
         saveLogButton.addActionListener(event -> {
             String fileName = new SimpleDateFormat("dd-MM-yyyy-HH-mm-ss").format(new Date()) + ".log";
@@ -53,6 +51,21 @@ public class MinecraftCapesTester {
                 exception.printStackTrace();
             }
         });
+
+        clearLogButton.addActionListener(event -> {
+            logArea.setText(null);
+        });
+
+        retryConnectionButton.addActionListener(event -> {
+            runJobs();
+        });
+
+        closeButton.addActionListener(event -> {
+            frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
+        });
+
+        //Run the jobs
+        runJobs();
     }
 
     /**
@@ -66,13 +79,7 @@ public class MinecraftCapesTester {
             e.printStackTrace();
         }
 
-        frame.setContentPane(new MinecraftCapesTester().panelMain);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.pack();
-        frame.setSize(800, 600);
-        frame.setLocationRelativeTo(null);
-        frame.setResizable(false);
-        frame.setVisible(true);
+        new MinecraftCapesTester();
     }
 
     /**
@@ -81,6 +88,7 @@ public class MinecraftCapesTester {
      */
     private void log(String log) {
         logArea.append(log + "\n");
+        logArea.setCaretPosition(logArea.getText().length());
     }
 
     /**
@@ -95,6 +103,19 @@ public class MinecraftCapesTester {
     }
 
     /**
+     * Runs the jobs
+     */
+    private void runJobs() {
+        new Thread(() -> {
+            enableButtons(false);
+            testPingConnect();
+            testHttpConnect();
+            enableButtons(true);
+            log("******** COMPLETED ********");
+        }).start();
+    }
+
+    /**
      * Sends a test ping connection
      */
     private void testPingConnect() {
@@ -106,7 +127,7 @@ public class MinecraftCapesTester {
                 if(ping.isReachable(1000)) {
                     long timeEnded = System.currentTimeMillis() - timeStarted;
                     log("Reply from " + ping.getHostAddress() + ": time=" + timeEnded + "ms");
-                    Thread.sleep(500);
+                    Thread.sleep(1000);
                 }
             }
         } catch(Exception e) {
@@ -153,5 +174,15 @@ public class MinecraftCapesTester {
             log("Connection Failed - " + e.getMessage());
             log(e);
         }
+    }
+
+    /**
+     * Toggles the buttons
+     * @param value Should they be enabled/disabled
+     */
+    private void enableButtons(boolean value) {
+        this.saveLogButton.setEnabled(value);
+        this.retryConnectionButton.setEnabled(value);
+        this.clearLogButton.setEnabled(value);
     }
 }
