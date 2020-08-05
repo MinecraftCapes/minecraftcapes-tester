@@ -128,6 +128,8 @@ public class MinecraftCapesTester {
                     long timeEnded = System.currentTimeMillis() - timeStarted;
                     log("Reply from " + ping.getHostAddress() + ": time=" + timeEnded + "ms");
                     Thread.sleep(1000);
+                } else {
+                    log("Request timed out");
                 }
             }
         } catch(Exception e) {
